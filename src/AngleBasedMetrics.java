@@ -6,5 +6,10 @@ public class AngleBasedMetrics {
 		this.curvativeAngle = curvativeAngle;
 		this.curvativeDistance = curvativeDistance;
 	}
+	@Override
+	public String toString() {
+		return "" + curvativeAngle
+				+ ":" + curvativeDistance;
+	}
 	
 }

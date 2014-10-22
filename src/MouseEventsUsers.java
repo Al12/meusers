@@ -3,18 +3,12 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
-
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hbase.HBaseConfiguration;
-import org.apache.hadoop.hbase.KeyValue;
-import org.apache.hadoop.hbase.client.Get;
 import org.apache.hadoop.hbase.client.HTable;
 import org.apache.hadoop.hbase.client.Put;
 import org.apache.hadoop.hbase.client.Result;
@@ -23,19 +17,12 @@ import org.apache.hadoop.hbase.io.ImmutableBytesWritable;
 import org.apache.hadoop.hbase.mapreduce.TableMapReduceUtil;
 import org.apache.hadoop.hbase.mapreduce.TableMapper;
 import org.apache.hadoop.hbase.util.Bytes;
-import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Reducer;
-import org.apache.hadoop.mapreduce.Mapper.Context;
-import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
-import org.apache.hadoop.util.GenericOptionsParser;
 import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
-import org.apache.zookeeper.KeeperException.SystemErrorException;
-
-import static org.mockito.Mockito.*;
 
 public class MouseEventsUsers extends Configured implements Tool {
 
@@ -413,6 +400,33 @@ public class MouseEventsUsers extends Configured implements Tool {
 			}
 			status += " of detected activity is suspicious)";
 			context.write(new Text(sid), new Text(status));
+			//collecting data on clicks for future use in SVM training
+			if ( pointAndClicks.size() > 15 ) {
+				//low amounts of clicks are useless, boring and may be abnormal
+				byte[] row = Bytes.toBytes(sid);
+				Put p = new Put(row);
+				p.add(Bytes.toBytes("metadata"), Bytes.toBytes("timestart"), Bytes.toBytes(sessionStart.toString()));
+				p.add(Bytes.toBytes("metadata"), Bytes.toBytes("timefinish"), Bytes.toBytes(sessionFinish.toString()));
+				if (marking.getMarkedFraction(count) >= detectionThreshhold) {
+					p.add(Bytes.toBytes("metadata"), Bytes.toBytes("info"), Bytes.toBytes("bot"));
+				} else {
+					p.add(Bytes.toBytes("metadata"), Bytes.toBytes("info"), Bytes.toBytes("human"));
+				}
+				p.add(Bytes.toBytes("metadata"), Bytes.toBytes("size"), Bytes.toBytes(totalMovements));
+				String allMetrics = "";
+				for ( PointAndClickAction action : pointAndClicks ) {
+					if ( action.isValid() ) {
+						for ( AngleBasedMetrics metrics : action.records ) {
+							allMetrics = allMetrics.concat(metrics.toString() + ",");
+						}
+					}
+				}
+				if ( totalMovements >= 1 ) {
+					allMetrics = allMetrics.substring(0, allMetrics.length() - 2);
+				}
+				p.add(Bytes.toBytes("data"), Bytes.toBytes("metrics"), Bytes.toBytes(allMetrics));
+				table.put(p);
+			}
 		}
 
 		@Override
@@ -421,7 +435,7 @@ public class MouseEventsUsers extends Configured implements Tool {
 			super.setup(context);
 			Configuration config = HBaseConfiguration.create(context
 					.getConfiguration());
-			this.table = new HTable(config, "usersanalyzing");
+			this.table = new HTable(config, "collectedclicks");
 		}
 
 		@Override
