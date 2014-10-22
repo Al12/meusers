@@ -375,8 +375,24 @@ public class MouseEventsUsers extends Configured implements Tool {
 			curvativeAngleDisp = Math.sqrt(curvativeAngleDisp/totalMovements);
 			curvativeDistanceDisp = Math.sqrt(curvativeDistanceDisp/totalMovements);
 			System.out.println("Averages:");
-			System.out.println("curvativeAngle = "+curvativeAngleAvg+"+"+curvativeAngleDisp);
+			System.out.println("curvativeAngle = "+curvativeAngleAvg+"+"+curvativeAngleDisp);			
 			System.out.println("curvativeDistance = "+curvativeDistanceAvg+"+"+curvativeDistanceDisp);
+			AbmProbabilityDistributionFunction curvativeAngleDistr = new AbmProbabilityDistributionFunction(120, 180, 20);
+			AbmProbabilityDistributionFunction curvativeDistanceDistr = new AbmProbabilityDistributionFunction(0, 0.35, 20);
+			for ( PointAndClickAction action : pointAndClicks ) {
+				if ( action.isValid() ) {
+					for ( AngleBasedMetrics metrics : action.records ) {
+						curvativeAngleDistr.newRecord(metrics.curvativeAngle * 180 / Math.PI);						
+						curvativeDistanceDistr.newRecord(metrics.curvativeDistance);
+					}
+				}
+			}
+			curvativeAngleDistr.calculateProbabilities();
+			curvativeDistanceDistr.calculateProbabilities();
+//			curvativeAngleDistr.plotDF();
+			curvativeAngleDistr.plotCDF();
+//			curvativeDistanceDistr.plotDF();
+			curvativeDistanceDistr.plotCDF();
 			String status;
 			Date sessionStart = new Date(events.get(0).time);
 			Date sessionFinish = new Date(events.get(events.size() - 1).time);

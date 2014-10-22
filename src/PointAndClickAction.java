@@ -32,7 +32,7 @@ public class PointAndClickAction {
 		if ( loadedPoints == 3 ) {
 			x3 = x;
 			y3 = y;
-			double direction = Math.atan2(y2 - y1, x2 - x1);						
+			//double direction = Math.atan2(y2 - y1, x2 - x1);						
 			double AC = Math.sqrt(Math.pow(x3-x1,2)+Math.pow(y3-y1,2));
 			double AB = Math.sqrt(Math.pow(x2-x1,2)+Math.pow(y2-y1,2));
 			double BC = Math.sqrt(Math.pow(x3-x2,2)+Math.pow(y3-y2,2));
