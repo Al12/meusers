@@ -37,9 +37,9 @@ public class PointAndClickAction {
 			double AB = Math.sqrt(Math.pow(x2-x1,2)+Math.pow(y2-y1,2));
 			double BC = Math.sqrt(Math.pow(x3-x2,2)+Math.pow(y3-y2,2));
 			//double curvativeAngle = Math.atan2(y3-y2, x3-x2) + Math.PI - direction;
-			if ( ((x2-x1)*(x3-x2)+(y2-y1)*(y3-y2))/(AB*BC) > 1) {
+			/*if ( ((x2-x1)*(x3-x2)+(y2-y1)*(y3-y2))/(AB*BC) > 1) {
 				System.out.println("ab*bc > 1 with "+x1+":"+y1+","+x2+":"+y2+","+x3+":"+y3);
-			}
+			}*/
 			double curvativeAngle = Math.PI - Math.acos(Math.min(1.0, ((x2-x1)*(x3-x2)+(y2-y1)*(y3-y2))/(AB*BC)));
 			//angle b/w AB and AC, smaller that direction
 			double alpha = Math.acos(Math.min(1.0, ((x2-x1)*(x3-x1)+(y2-y1)*(y3-y1))/(AB*AC)));

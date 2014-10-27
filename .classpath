@@ -1,6 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
-	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="src" path="src">
+		<attributes>
+			<attribute name="org.eclipse.jdt.launching.CLASSPATH_ATTR_LIBRARY_PATH_ENTRY" value="MouseEventsUsers/bin"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="src" path="lib">
+		<attributes>
+			<attribute name="org.eclipse.jdt.launching.CLASSPATH_ATTR_LIBRARY_PATH_ENTRY" value="MouseEventsUsers/bin"/>
+		</attributes>
+	</classpathentry>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.7"/>
 	<classpathentry kind="lib" path="/home/al/.m2/repository/org/apache/hadoop/hadoop-core/1.2.1/hadoop-core-1.2.1.jar">
 		<attributes>
@@ -30,5 +39,10 @@
 	<classpathentry kind="lib" path="/usr/lib/hbase/lib/netty-3.6.6.Final.jar"/>
 	<classpathentry kind="lib" path="/usr/lib/hbase/lib/jackson-mapper-asl-1.8.8.jar"/>
 	<classpathentry kind="lib" path="/usr/lib/hbase/lib/jackson-core-asl-1.8.8.jar"/>
+	<classpathentry kind="lib" path="/home/al/Downloads/JNI_SVM-light-6.01-64bit/lib/jnisvmlight.jar">
+		<attributes>
+			<attribute name="org.eclipse.jdt.launching.CLASSPATH_ATTR_LIBRARY_PATH_ENTRY" value="/home/al/Downloads/JNI_SVM-light-6.01-64bit/lib"/>
+		</attributes>
+	</classpathentry>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

@@ -4,7 +4,7 @@ public class AbmProbabilityDistributionFunction {
 	double intervalEnd;
 	int bins;
 	double[] probabilities;
-	int[] cache;
+	private int[] cache;
 	long records;
 	public AbmProbabilityDistributionFunction(double intervalStart,
 			double intervalEnd, int bins) {
@@ -86,6 +86,7 @@ public class AbmProbabilityDistributionFunction {
 		for(int i=0;i<bins;++i) {
 			dist += Math.abs(this.probabilities[i] - other.probabilities[i]);
 		}
+		//return (dist/bins);	probabilities are smaller if there are more bins
 		return dist;
 	}
 	@Override
