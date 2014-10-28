@@ -1,3 +1,4 @@
+package main;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -74,72 +75,14 @@ public class MouseEventsUsers extends Configured implements Tool {
                 if (lastEvent.type.equals("wheel")) {
                     ++scrollEvents;
                 }
-            }
-            int count = events.size();
+            }            
             Collections.sort(events, new EventRecordComparatorTime());
             // search sequences...
+            int count = events.size();
             if (count > 10) {
-                for (int sequenceLength = 1; sequenceLength <= Math.min(
-                        count / 2, 50); ++sequenceLength) {
-                    // 50 from performance reasons, also from bot's programming
-                    // reasons
-                    if (marking.getMarkedFraction(count) >= detectionThreshhold) {
-                        // enough, we already know that this user is bot
-                        break;
-                    }
-                    for (int start = 0; start < count - sequenceLength * 2; ++start) {
-                        eventSubseqence subsequence = new eventSubseqence(
-                                events, start, sequenceLength);
-                        if (subsequence.checkForwardForSameSeqences(2, 25)) {
-                            if ((subsequence.foundEqualSeqences + 1)
-                                    * sequenceLength < 10) {
-                                // for simple repeated actions (like
-                                // autoclicker)
-                                // - why would anybody use the bot for less than
-                                // 10 clicks?
-                                // for longer 3+ clicks repeated sequences -
-                                // lower than 3
-                                // still seems unrealistic for bot
-                                continue;
-                            }
-                            if (subsequence.checkPeriods(50)) {
-                                if (subsequence.foundEqualSeqences > 0) {
-                                    // debugging
-                                    for (int i = start; i < start
-                                            + sequenceLength; ++i) {
-                                        System.out.print(events.get(i)
-                                                .toString() + " ");
-                                    }
-                                    System.out.println();
-                                    System.out.println(" is equal to");
-                                    for (int j = 0; j < subsequence.foundEqualSeqences; ++j) {
-                                        for (int i = start + sequenceLength
-                                                * (j + 1); i < start
-                                                + sequenceLength * (j + 2); ++i) {
-                                            System.out.print(events.get(i)
-                                                    .toString() + " ");
-                                        }
-                                        if (j < subsequence.foundEqualSeqences - 1) {
-                                            System.out.print(" and");
-                                        }
-                                        System.out.println();
-                                    }
-                                }
-                                if (!marking.isFullyMarked(start,
-                                        (subsequence.foundEqualSeqences + 1)
-                                                * sequenceLength)) {
-                                    marking.mark(
-                                            start,
-                                            (subsequence.foundEqualSeqences + 1)
-                                                    * sequenceLength);
-                                }
-                                if (marking.getMarkedFraction(count) >= detectionThreshhold)
-                                    break;
-                            }
-                        }
-                    }
-                }
+                markSuspiciousEvents(marking, events);
             }
+            
             System.out.println(sid);
             // group users...
             double movementSpeed = calculateMovementSpeed(events);
@@ -158,13 +101,12 @@ public class MouseEventsUsers extends Configured implements Tool {
                 }
             }
             printPointAndClickStatistics(events.size(), pointAndClicks);
+            
             String status;
             Date sessionStart = new Date(events.get(0).time);
             Date sessionFinish = new Date(events.get(events.size() - 1).time);
             status = "\n" + sessionStart.toString() + "\n"
                     + sessionFinish.toString() + "\n";
-            // status += "average movespeed "+Math.round(movementSpeed*1000)
-            // +" px/sec\n";
             status += getUserGroup(events, movementSpeed, scrollEvents,
                     clickAndSelects) + "\n";
             if (marking.getMarkedFraction(count) >= detectionThreshhold) {
@@ -216,6 +158,71 @@ public class MouseEventsUsers extends Configured implements Tool {
                 p.add(Bytes.toBytes("data"), Bytes.toBytes("metrics"),
                         Bytes.toBytes(allMetrics));
                 table.put(p);
+            }
+        }
+
+        private void markSuspiciousEvents(MarkingOnEvents marking,
+                List<EventRecord> events) {
+            int count = events.size();
+            for (int sequenceLength = 1; sequenceLength <= Math.min(
+                    count / 2, 50); ++sequenceLength) {
+                // 50 from performance reasons, also from bot's programming
+                // reasons
+                if (marking.getMarkedFraction(count) >= detectionThreshhold) {
+                    // enough, we already know that this user is bot
+                    break;
+                }
+                for (int start = 0; start < count - sequenceLength * 2; ++start) {
+                    eventSubseqence subsequence = new eventSubseqence(
+                            events, start, sequenceLength);
+                    if (subsequence.checkForwardForSameSeqences(2, 25)) {
+                        if ((subsequence.foundEqualSeqences + 1)
+                                * sequenceLength < 10) {
+                            // for simple repeated actions (like
+                            // autoclicker)
+                            // - why would anybody use the bot for less than
+                            // 10 clicks?
+                            // for longer 3+ clicks repeated sequences -
+                            // lower than 3
+                            // still seems unrealistic for bot
+                            continue;
+                        }
+                        if (subsequence.checkPeriods(50)) {
+                            if (subsequence.foundEqualSeqences > 0) {
+                                // debugging
+                                for (int i = start; i < start
+                                        + sequenceLength; ++i) {
+                                    System.out.print(events.get(i)
+                                            .toString() + " ");
+                                }
+                                System.out.println();
+                                System.out.println(" is equal to");
+                                for (int j = 0; j < subsequence.foundEqualSeqences; ++j) {
+                                    for (int i = start + sequenceLength
+                                            * (j + 1); i < start
+                                            + sequenceLength * (j + 2); ++i) {
+                                        System.out.print(events.get(i)
+                                                .toString() + " ");
+                                    }
+                                    if (j < subsequence.foundEqualSeqences - 1) {
+                                        System.out.print(" and");
+                                    }
+                                    System.out.println();
+                                }
+                            }
+                            if (!marking.isFullyMarked(start,
+                                    (subsequence.foundEqualSeqences + 1)
+                                            * sequenceLength)) {
+                                marking.mark(
+                                        start,
+                                        (subsequence.foundEqualSeqences + 1)
+                                                * sequenceLength);
+                            }
+                            if (marking.getMarkedFraction(count) >= detectionThreshhold)
+                                break;
+                        }
+                    }
+                }
             }
         }
 
@@ -723,21 +730,6 @@ public class MouseEventsUsers extends Configured implements Tool {
 
     public static void main(String[] args) throws Exception {
         int exitCode = ToolRunner.run(new MouseEventsUsers(), args);
-        /*
-         * Testing List<Text> values = new ArrayList<>(); values.add(new
-         * Text("mousemove,1413798132785,815,501")); int imax = 16; for(int
-         * i=0;i<imax;++i) { int y1=500; int y2=499; Long time =
-         * Long.parseLong("1413798132773"); time += i * 5; values.add(new
-         * Text("mousemove,"+time+",815,"+Math.round(y1 * i / imax + y2 * (imax
-         * - i) / imax))); } values.add(new
-         * Text("mousemove,1413798142200,786,329")); values.add(new
-         * Text("mousemove,1413798142300,726,267")); values.add(new
-         * Text("mousemove,1413798142400,786,329")); values.add(new
-         * Text("mousemove,1413798142500,726,267")); Reducer.Context context =
-         * mock(Reducer.Context.class); new MouseEventsUsersReducer().reduce(new
-         * Text("183ec2e8-0f24-4582-9788-281cda0ae04e"), (Iterable<Text>)values,
-         * context); int exitCode = 0;
-         */
         System.exit(exitCode);
     }
 

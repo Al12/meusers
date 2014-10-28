@@ -1,3 +1,4 @@
+package main;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -170,6 +171,7 @@ public class SVMTeacher extends Configured implements Tool {
 
     public static void trainSVM() {
         // make the training set
+        // TODO: only curvativeDistance is used now, add angles and combine 2 SVM's results
         // using only curvative distance now, angle will be done later and with
         // another svm
         // The trainer interface with the native communication to the SVM-light

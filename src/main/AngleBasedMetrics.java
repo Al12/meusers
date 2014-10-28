@@ -1,3 +1,4 @@
+package main;
 
 public class AngleBasedMetrics implements Comparable<Object> {
 	double curvativeAngle;

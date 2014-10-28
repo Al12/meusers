@@ -1,7 +1,8 @@
+package main;
 import org.apache.hadoop.io.Text;
 
 
-class EventRecord {
+public class EventRecord {
     String type;
     long time;
     int x;

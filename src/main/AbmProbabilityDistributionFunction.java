@@ -1,3 +1,4 @@
+package main;
 
 public class AbmProbabilityDistributionFunction {
 	double intervalStart;
@@ -6,6 +7,7 @@ public class AbmProbabilityDistributionFunction {
 	double[] probabilities;
 	private int[] cache;
 	long records;
+	public boolean ready;
 	public AbmProbabilityDistributionFunction(double intervalStart,
 			double intervalEnd, int bins) {
 		this.intervalStart = intervalStart;
@@ -17,6 +19,7 @@ public class AbmProbabilityDistributionFunction {
 			cache[i] = 0;
 		}
 		records = 0;
+		ready = false;
 	}
 	public boolean newRecord(double record) {
 		if ( record < intervalStart )	return false;
@@ -24,12 +27,14 @@ public class AbmProbabilityDistributionFunction {
 		int i = (int)Math.min(bins - 1, Math.round(Math.floor(bins * (record - intervalStart) / (intervalEnd - intervalStart))));
 		++cache[i];
 		++records;
+		ready = false;
 		return true;
 	}
 	public void calculateProbabilities() {
 		for(int i=0;i<bins;++i) {
 			probabilities[i] = 1.0 * cache[i] / records;
 		}
+		ready = true;
 	}
 	private void plot(double[] source, double dy) {
 		for(double h=1.0;h>-dy/2;h-=dy) {
@@ -82,6 +87,8 @@ public class AbmProbabilityDistributionFunction {
 			(this.intervalEnd != other.intervalEnd)) {
 			throw new IllegalArgumentException("Getting distance between different distributions "+this.toString()+" and "+other.toString());
 		}
+		this.prepare();
+		other.prepare();
 		double dist = 0;
 		for(int i=0;i<bins;++i) {
 			dist += Math.abs(this.probabilities[i] - other.probabilities[i]);
@@ -95,5 +102,16 @@ public class AbmProbabilityDistributionFunction {
 				+ intervalStart + ", intervalEnd=" + intervalEnd + ", bins="
 				+ bins + "]";
 	}
-	
+	private boolean prepare() {
+	    if ( !ready ) {
+            calculateProbabilities();
+            return false;
+        } else {
+            return true;
+        }
+	}
+	public double[] getProbabilities() {
+	    prepare();
+	    return probabilities;
+	}
 }
