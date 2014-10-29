@@ -38,7 +38,7 @@ public class SVMTeacher extends Configured implements Tool {
      * RuntimeException(e1); } }
      */
 
-    public static final int maxMetricsPerId = 10000;
+    public static final int maxMetricsPerId = 20000;
     public static final int maxMetricsPositive = 100000;
     public static final int maxMetricsNegative = 200000;
 
@@ -55,10 +55,13 @@ public class SVMTeacher extends Configured implements Tool {
                 String dataFull = Bytes.toString(data);
                 String[] dataSplitted = dataFull.split(",");
                 if (dataSplitted.length <= maxMetricsPerId) {
+                    //just load them all
                     context.write(new Text(""), new Text(data));
                     System.out.println("Loaded " + dataSplitted.length
                             + " metrics records");
                 } else {
+                    //too many for this record. more data is nice, will make program slower
+                    //while less data is enough for one record
                     StringBuilder dataTrimmed = new StringBuilder(
                             maxMetricsPerId * ((17 + 2) * 2 + 1));
                     for (int i = 0; i < maxMetricsPerId; ++i) {
@@ -154,7 +157,7 @@ public class SVMTeacher extends Configured implements Tool {
     private static AngleBasedMetrics[] negativeMetricsSet;
     private static int negativeMetricsSetSize;
 
-    private static LabeledFeatureVector makeFeatureVectorFromBlockDistance(
+    public static LabeledFeatureVector makeFeatureVectorFromBlockDistance(
             int sign, Block block) {
         int nDims = Block.blockSize;
         int[] dims = new int[nDims];
@@ -168,8 +171,12 @@ public class SVMTeacher extends Configured implements Tool {
         // Store dimension/value pairs in new LabeledFeatureVector object
         return new LabeledFeatureVector(sign, dims, values);
     }
+    
+    public static String modelFileName(String uid) {
+        return uid+"_model.dat";
+    }
 
-    public static void trainSVM() {
+    public static void trainSVM(String uid) {
         // make the training set
         // TODO: only curvativeDistance is used now, add angles and combine 2 SVM's results
         // using only curvative distance now, angle will be done later and with
@@ -244,8 +251,7 @@ public class SVMTeacher extends Configured implements Tool {
         System.out.println(" DONE.");
 
         // Use this to store a model to a file or read a model from a URL.
-        // TODO: some hadoop file stuff
-        // model.writeModelToFile("jni_model.dat");
+        model.writeModelToFile(modelFileName(uid));
         // model = SVMLightModel.readSVMLightModelFromURL(new
         // java.io.File("jni_model.dat").toURL());
 
@@ -434,7 +440,7 @@ public class SVMTeacher extends Configured implements Tool {
                 + ((double) frr / 500));
     }
 
-    private static Block constructBlock(AngleBasedMetrics[] source,
+    public static Block constructBlock(AngleBasedMetrics[] source,
             int sourceSize) {
         AngleBasedMetrics[] block = new AngleBasedMetrics[Block.blockSize];
         int index;
@@ -526,7 +532,7 @@ public class SVMTeacher extends Configured implements Tool {
                             + negativeMetricsSetSize + " negative examples)");
             return 2;
         }
-        trainSVM();
+        trainSVM(userId);
         return 0;
     }
 

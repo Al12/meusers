@@ -5,6 +5,7 @@ import static org.junit.Assert.*;
 import main.AbmProbabilityDistributionFunction;
 import main.AngleBasedMetrics;
 import main.EventRecord;
+import main.MarkingOnEvents;
 
 import org.apache.hadoop.io.Text;
 import org.junit.Test;
@@ -105,6 +106,39 @@ public class UtilityClassesTests {
         PDF3.calculateProbabilities();
         // distance between [very] different distributions
         assertTrue(PDF1.distanceTo(PDF3) > 1.0);
+    }
+    
+    @Test
+    public void markings() {
+        MarkingOnEvents marking = new MarkingOnEvents();
+        marking.mark(1, 2); //1,2
+        assertTrue(marking.isFullyMarked(1, 0));
+        assertTrue(marking.isFullyMarked(1, 1));
+        assertTrue(marking.isFullyMarked(1, 2));
+        assertFalse(marking.isFullyMarked(0, 1));
+        assertFalse(marking.isFullyMarked(0, 2));
+        assertFalse(marking.isFullyMarked(1, 3));
+        assertFalse(marking.isFullyMarked(1, 4));
+        marking.mark(2, 1); //1,2 + 2
+        assertFalse(marking.isFullyMarked(1, 3));
+        marking.mark(2, 2); //1,2 + 2,3
+        assertTrue(marking.isFullyMarked(1, 3));
+        marking.mark(4, 1); //1,2,3 + 4
+        assertTrue(marking.isFullyMarked(1, 4));
+        marking.mark(6, 2); //1,2,3,4 + 6,7
+        assertTrue(marking.isFullyMarked(1, 4));
+        assertTrue(marking.isFullyMarked(6, 2));
+        assertFalse(marking.isFullyMarked(1, 7));
+        assertFalse(marking.isFullyMarked(4, 2));
+        assertFalse(marking.isFullyMarked(5, 1));
+        assertFalse(marking.isFullyMarked(5, 2));
+        marking.mark(0, 1); //0 + 1,2,3,4,6,7
+        assertTrue(marking.isFullyMarked(0, 3));
+        
+        assertTrue(Math.abs(marking.getMarkedFraction(10) - 0.7)< 0.001);  // 7/10
+        marking.mark(1, 7); //0,1,2,3,4,6,7+1,2,3,4,5,6,7
+        assertTrue(Math.abs(marking.getMarkedFraction(10) - 0.8)< 0.001);  // 8/10
+        assertTrue(Math.abs(marking.getMarkedFraction(100) - 0.08)< 0.001);  // 8/100
     }
 
 }

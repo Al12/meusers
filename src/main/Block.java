@@ -4,7 +4,7 @@ import java.util.Arrays;
 
 public class Block {
 	public final static int blockSize = 405;
-	AngleBasedMetrics[] records;
+	public AngleBasedMetrics[] records;
 	public Block(AngleBasedMetrics[] records, boolean sort) {
 		this.records = records;
 		if (sort) {

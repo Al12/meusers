@@ -28,7 +28,7 @@ public class MouseEventsUsers extends Configured implements Tool {
 
     static final double detectionThreshhold = 0.02;
 
-    static class MouseEventsUsersMapper extends TableMapper<Text, Text> {
+    public static class MouseEventsUsersMapper extends TableMapper<Text, Text> {
 
         private String getFromResult(String family, String name, Result r) {
             return Bytes.toString(r.getValue(Bytes.toBytes(family),
@@ -653,7 +653,7 @@ public class MouseEventsUsers extends Configured implements Tool {
             }
         }
 
-        private List<PointAndClickAction> extractPointAndClickActions(
+        public List<PointAndClickAction> extractPointAndClickActions(
                 List<EventRecord> source, String sid, long clickDt, long dt) {
             EventRecord clickEvent;
             List<PointAndClickAction> storage = new ArrayList<>();

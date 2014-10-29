@@ -6,7 +6,7 @@ import java.util.List;
 
 // used to count how many actions are suspicious (bot-like)
 // slow bicycle because of list inside, but should be enough for this task
-class MarkingOnEvents {
+public class MarkingOnEvents {
     class Range {
         int start;
         int end;
@@ -28,9 +28,19 @@ class MarkingOnEvents {
                 return (this.start <= other.end);
             }
         }
+        
+        public boolean canBeMerged(Range other) {
+            if (this.start <= other.start) {
+                // this's on left
+                return (this.end >= (other.start - 1));
+            } else {
+                // this's on right
+                return (this.start <= (other.end + 1));
+            }
+        }
 
         public Range mergeWith(Range other) {
-            if (!overlaps(other)) {
+            if (!canBeMerged(other)) {
                 throw new IllegalArgumentException(this.toString()
                         + " and " + other.toString() + " don't overlap");
             }
@@ -51,6 +61,7 @@ class MarkingOnEvents {
     List<Range> marks;  //is always sorted
     boolean fractionCached;
     double cachedFraction;  //return value of getMarkedFraction
+    int fractionCachedForLength; //value of fullLength can change, so it needs to be saved
 
     public MarkingOnEvents() {
         super();
@@ -62,12 +73,12 @@ class MarkingOnEvents {
         fractionCached = false;
         Range newRange = new Range(start, start + length - 1);
         for (Range r : marks) {
-            if (r.overlaps(newRange)) {
+            if (r.canBeMerged(newRange)) {
                 r.mergeWith(newRange);
                 int index = marks.indexOf(r);
                 while (index < marks.size() - 1) {
                     Range next = marks.get(index + 1);
-                    if (r.overlaps(next)) {
+                    if (r.canBeMerged(next)) {
                         r.mergeWith(next);
                         marks.remove(next);
                     } else {
@@ -79,7 +90,7 @@ class MarkingOnEvents {
                  * r-1, then r-1 overlaps new 
                  * while( index > 0) { index =
                  * marks.indexOf(r); Range prev = marks.get(index - 1); if (
-                 * r.overlaps(prev)) { r.mergeWith(prev);
+                 * r.canBeMerged(prev)) { r.mergeWith(prev);
                  * marks.remove(prev); } else { break; } }
                  */
                 return;
@@ -107,18 +118,19 @@ class MarkingOnEvents {
     }
 
     public double getMarkedFraction(int fullLength) {
-        if (fractionCached) {
+        if (fractionCached && (fullLength == fractionCachedForLength)) {
             return cachedFraction;
         }
         int length = 0;
         for (Range r : marks) {
-            length += (r.end - r.start);
+            length += (r.end + 1 - r.start);
         }
         if (length > fullLength) {
             throw new IllegalArgumentException("Marked length " + length
                     + ", when full length is " + fullLength);
         }
         fractionCached = true;
+        fractionCachedForLength = fullLength;
         cachedFraction = 1.0 * length / fullLength;
         return cachedFraction;
     }

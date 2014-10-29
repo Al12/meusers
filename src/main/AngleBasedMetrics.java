@@ -1,8 +1,8 @@
 package main;
 
 public class AngleBasedMetrics implements Comparable<Object> {
-	double curvativeAngle;
-	double curvativeDistance;
+    public double curvativeAngle;
+    public double curvativeDistance;
 	public AngleBasedMetrics(double curvativeAngle, double curvativeDistance) {
 		this.curvativeAngle = curvativeAngle;
 		this.curvativeDistance = curvativeDistance;
